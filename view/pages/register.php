@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="shortcut icon" type="image/png" href="../../assets/images/favicon.png">
-    <title>.: Login :.</title>
+    <title>.: Register :.</title>
 </head>
 <body>
     <section>
         <div class="login-box">
             <form action="">
-                <h2>LOGIN</h2>
+                <h2>REGISTER</h2>
                 <div class="input-box">
                     <input type="text" name="user_id" id="user_id" required>
                     <label style="color: white;">Username ID</label> 
@@ -20,9 +20,9 @@
                     <input type="password" name="password" id="password" required>
                     <label style="color: white;">Password</label> 
                 </div>
-                <button>Login</button> 
+                <button>Register</button> 
                 <div class="register-link">
-                    <p>Don't hava a account?<a href="/view/pages/register.php"> Register</a></p>
+                    <p>have a account?<a href="/view/pages/login.php"> Login</a></p>
                 </div>
             </form>
         </div>
