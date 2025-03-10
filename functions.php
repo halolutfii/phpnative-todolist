@@ -1,11 +1,10 @@
 <?php 
-
 // Connection to DB
 function connectDB() {
     $host = "localhost";
     $user = "root";
-    $pass = "root";
-    $dbname = "my_database";
+    $pass = "";
+    $dbname = "bpjs";
 
     $conn = new mysqli($host, $user, $pass, $dbname);
 
@@ -15,6 +14,4 @@ function connectDB() {
 
     return $conn;
 }
-
-
 ?>
