@@ -19,6 +19,7 @@ Tampilan dari aplikasi:
 
 ## Technologies Used
 - PHP
+- Bootstrap
 - MySQL
 
 # Run the project
