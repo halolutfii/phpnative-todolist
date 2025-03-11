@@ -1,3 +1,15 @@
+<?php
+session_start();
+include '../../functions.php';
+
+$conn = connectDB(); 
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../auth/login.php");
+    exit;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

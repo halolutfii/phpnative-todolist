@@ -5,10 +5,11 @@ include '../../functions.php';
 $conn = connectDB(); 
 
 if (!isset($_SESSION['user_id'])) {
-    die("Access denied. Please login first.");
+    header("Location: ../auth/login.php");
+    exit;
 }
 
-$user_id = $_SESSION['user_id']; // Ambil ID user dari session
+$user_id = $_SESSION['user_id']; 
 
 $sql = "
     SELECT tasks.id, tasks.task, tasks.status, users.username 
@@ -17,8 +18,7 @@ $sql = "
     WHERE tasks.user_id = ?
 ";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $user_id);  // Gunakan bind_param untuk keamanan
-$stmt->execute();
+$stmt->bind_param("i", $user_id); 
 $result = $stmt->get_result();
 ?>
 
