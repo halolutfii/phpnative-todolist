@@ -7,32 +7,46 @@ if (!isset($_SESSION['user_id'])) {
 
 include '../../functions.php';
 
-if (!isset($_GET['id']) || empty($_GET['id'])) {
-    echo "Task ID tidak ditemukan!";
-    exit;
+class Task {
+    private $conn;
+
+    public function __construct() {
+        $this->conn = connectDB();
+    }
+
+    public function getTaskDetail($task_id, $user_id) {
+        $stmt = $this->conn->prepare("
+            SELECT tasks.task, tasks.status, tasks.created_at, tasks.updated_at, users.username 
+            FROM tasks 
+            JOIN users ON tasks.user_id = users.id 
+            WHERE tasks.id = ? AND tasks.user_id = ?
+        ");
+        $stmt->bind_param("ii", $task_id, $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $taskData = $result->fetch_assoc();
+        $stmt->close();
+        return $taskData;
+    }
+
+    public function __destruct() {
+        $this->conn->close();
+    }
 }
 
-$task_id = $_GET['id'];
-$conn = connectDB();
+if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
+    die("Task ID tidak valid!");
+}
 
-$stmt = $conn->prepare("
-    SELECT tasks.task, tasks.status, tasks.created_at, tasks.updated_at, users.username 
-    FROM tasks 
-    JOIN users ON tasks.user_id = users.id 
-    WHERE tasks.id = ? AND tasks.user_id = ?
-");
-$stmt->bind_param("ii", $task_id, $_SESSION['user_id']);
-$stmt->execute();
-$result = $stmt->get_result();
-$taskData = $result->fetch_assoc();
+$task_id = intval($_GET['id']);
+$user_id = $_SESSION['user_id'];
+
+$taskObj = new Task();
+$taskData = $taskObj->getTaskDetail($task_id, $user_id);
 
 if (!$taskData) {
-    echo "Task tidak ditemukan!";
-    exit;
+    die("Task tidak ditemukan!");
 }
-
-$stmt->close();
-$conn->close();
 ?>
 
 <!DOCTYPE html>

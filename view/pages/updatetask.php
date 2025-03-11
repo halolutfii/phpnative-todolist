@@ -1,55 +1,66 @@
 <?php
 session_start();
+include '../../functions.php';
+
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../auth/login.php");
     exit;
 }
 
-include '../../functions.php';
+class Task {
+    private $conn;
+
+    public function __construct() {
+        $this->conn = connectDB();
+    }
+
+    public function getTask($task_id, $user_id) {
+        $stmt = $this->conn->prepare("SELECT task, status FROM tasks WHERE id = ? AND user_id = ?");
+        $stmt->bind_param("ii", $task_id, $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $stmt->close();
+        return $result->fetch_assoc();
+    }
+
+    public function updateTask($task_id, $user_id, $task, $status) {
+        $stmt = $this->conn->prepare("UPDATE tasks SET task = ?, status = ?, updated_at = NOW() WHERE id = ? AND user_id = ?");
+        $stmt->bind_param("ssii", $task, $status, $task_id, $user_id);
+        $success = $stmt->execute();
+        $stmt->close();
+        return $success;
+    }
+}
 
 if (!isset($_GET['id']) || empty($_GET['id'])) {
-    echo "Task ID tidak ditemukan!";
-    exit;
+    die("Task ID tidak ditemukan!");
 }
 
 $task_id = $_GET['id'];
-$conn = connectDB();
+$user_id = $_SESSION['user_id'];
 
-$stmt = $conn->prepare("SELECT task, status FROM tasks WHERE id = ? AND user_id = ?");
-$stmt->bind_param("ii", $task_id, $_SESSION['user_id']);
-$stmt->execute();
-$result = $stmt->get_result();
-$taskData = $result->fetch_assoc();
+$taskHandler = new Task();
+$taskData = $taskHandler->getTask($task_id, $user_id);
 
 if (!$taskData) {
-    echo "Task tidak ditemukan!";
-    exit;
+    die("Task tidak ditemukan!");
 }
-
-$stmt->close();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $task = trim($_POST['task']);
     $status = trim($_POST['status']);
 
     if (!empty($task) && !empty($status)) {
-        $stmt = $conn->prepare("UPDATE tasks SET task = ?, status = ?, updated_at = NOW() WHERE id = ? AND user_id = ?");
-        $stmt->bind_param("ssii", $task, $status, $task_id, $_SESSION['user_id']);
-
-        if ($stmt->execute()) {
+        if ($taskHandler->updateTask($task_id, $user_id, $task, $status)) {
             header("Location: mytask.php");
             exit;
         } else {
             echo "Gagal memperbarui tugas!";
         }
-
-        $stmt->close();
     } else {
         echo "Tugas dan status tidak boleh kosong!";
     }
 }
-
-$conn->close();
 ?>
 
 <!DOCTYPE html>

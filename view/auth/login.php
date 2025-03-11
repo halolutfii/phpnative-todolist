@@ -2,34 +2,50 @@
 session_start();
 include '../../functions.php';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $email = $_POST['email'];
-    $password = $_POST['password'];
+class Auth {
+    private $conn;
 
-    $conn = connectDB();
-    $stmt = $conn->prepare("SELECT id, username, password FROM users WHERE email = ?");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $stmt->store_result();
-
-    if ($stmt->num_rows > 0) {
-        $stmt->bind_result($id, $username, $hashed_password);
-        $stmt->fetch();
-
-        if (password_verify($password, $hashed_password)) { 
-            $_SESSION['user_id'] = $id;
-            $_SESSION['username'] = $username;
-            header("Location: ../pages/dashboard.php");
-            exit;
-        } else {
-            echo "Password salah!";
-        }
-    } else {
-        echo "Email tidak ditemukan!";
+    public function __construct() {
+        $this->conn = connectDB(); 
     }
 
-    $stmt->close();
-    $conn->close();
+    public function login($email, $password) {
+        $email = trim($email);
+        $password = trim($password);
+
+        $stmt = $this->conn->prepare("SELECT id, username, password FROM users WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $stmt->store_result();
+
+        if ($stmt->num_rows > 0) {
+            $stmt->bind_result($id, $username, $hashed_password);
+            $stmt->fetch();
+
+            if (password_verify($password, $hashed_password)) { 
+                $_SESSION['user_id'] = $id;
+                $_SESSION['username'] = $username;
+                return true;
+            } else {
+                return "Password salah!";
+            }
+        } else {
+            return "Email tidak ditemukan!";
+        }
+    }
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $auth = new Auth();
+    $result = $auth->login($_POST['email'], $_POST['password']);
+
+    if ($result === true) {
+        header("Location: ../pages/dashboard.php");
+        exit;
+    } else {
+        echo $result;
+        exit; 
+    }
 }
 ?>
 
