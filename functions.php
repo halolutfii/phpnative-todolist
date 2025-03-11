@@ -3,7 +3,7 @@
 function connectDB() {
     $host = "localhost";
     $user = "root";
-    $pass = "";
+    $pass = "root";
     $dbname = "bpjs";
 
     $conn = new mysqli($host, $user, $pass, $dbname);

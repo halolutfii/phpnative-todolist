@@ -15,7 +15,12 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 $task_id = $_GET['id'];
 $conn = connectDB();
 
-$stmt = $conn->prepare("SELECT task, status FROM tasks WHERE id = ? AND user_id = ?");
+$stmt = $conn->prepare("
+    SELECT tasks.task, tasks.status, tasks.created_at, tasks.updated_at, users.username 
+    FROM tasks 
+    JOIN users ON tasks.user_id = users.id 
+    WHERE tasks.id = ? AND tasks.user_id = ?
+");
 $stmt->bind_param("ii", $task_id, $_SESSION['user_id']);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -27,28 +32,6 @@ if (!$taskData) {
 }
 
 $stmt->close();
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $task = trim($_POST['task']);
-    $status = trim($_POST['status']);
-
-    if (!empty($task) && !empty($status)) {
-        $stmt = $conn->prepare("UPDATE tasks SET task = ?, status = ?, updated_at = NOW() WHERE id = ? AND user_id = ?");
-        $stmt->bind_param("ssii", $task, $status, $task_id, $_SESSION['user_id']);
-
-        if ($stmt->execute()) {
-            header("Location: mytask.php");
-            exit;
-        } else {
-            echo "Gagal memperbarui tugas!";
-        }
-
-        $stmt->close();
-    } else {
-        echo "Tugas dan status tidak boleh kosong!";
-    }
-}
-
 $conn->close();
 ?>
 
@@ -57,7 +40,7 @@ $conn->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Update My Task</title>
+    <title>Detail Task</title>
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="shortcut icon" type="image/png" href="../../assets/images/favicon.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -92,27 +75,32 @@ $conn->close();
                 <div class="row">
                     <div class="col-12 col-xl-12 mb-4 mb-lg-0">
                         <div class="card">
-                            <div class="card-header bg-primary text-white">Update Task</div>
-                            <form method="post">
-                                <div class="card-body">
-                                    <div class="m-2">
-                                        <label for="task" class="form-label">My Task</label>
-                                        <input type="text" class="form-control" name="task" required value="<?= htmlspecialchars($taskData['task']) ?>">
-                                    </div>
-                                    <div class="m-2">
-                                        <label for="status" class="form-label">Status</label>
-                                        <select class="form-control" name="status" required>
-                                            <option value="Pending" <?= $taskData['status'] == 'Pending' ? 'selected' : '' ?>>Pending</option>
-                                            <option value="On Progress" <?= $taskData['status'] == 'On Progress' ? 'selected' : '' ?>>On Progress</option>
-                                            <option value="Completed" <?= $taskData['status'] == 'Completed' ? 'selected' : '' ?>>Completed</option>
-                                        </select>
-                                    </div>
+                            <div class="card-header bg-primary text-white">Detail Task</div>
+                            <div class="card-body">
+                                <div class="m-2">
+                                    <strong>Task:</strong>
+                                    <p><?= htmlspecialchars($taskData['task']) ?></p>
                                 </div>
-                                <div class="card-footer d-flex justify-content-end">
-                                    <a href="mytask.php" class="btn btn-primary m-1">Cancel</a>
-                                    <button type="submit" class="btn btn-success btn-sm w-auto m-1">Update</button>
+                                <div class="m-2">
+                                    <strong>Task Owner:</strong>
+                                    <p><?= htmlspecialchars($taskData['username']) ?></p>
                                 </div>
-                            </form>
+                                <div class="m-2">
+                                    <strong>Status:</strong>
+                                    <p><?= htmlspecialchars($taskData['status']) ?></p>
+                                </div>
+                                <div class="m-2">
+                                    <strong>Created At:</strong>
+                                    <p><?= htmlspecialchars($taskData['created_at']) ?></p>
+                                </div>
+                                <div class="m-2">
+                                    <strong>Last Updated:</strong>
+                                    <p><?= htmlspecialchars($taskData['updated_at']) ?></p>
+                                </div>
+                            </div>
+                            <div class="card-footer d-flex justify-content-end">
+                                <a href="mytask.php" class="btn btn-primary m-1">Kembali</a>
+                            </div>
                         </div>
                     </div>
                 </div>

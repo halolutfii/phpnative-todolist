@@ -1,3 +1,36 @@
+<?php
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../auth/login.php");
+    exit;
+}
+
+include '../../functions.php';
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $task = trim($_POST['task']);
+    $status = trim($_POST['status']); 
+
+    if (!empty($task) && !empty($status)) {
+        $conn = connectDB();
+        $stmt = $conn->prepare("INSERT INTO tasks (user_id, task, status, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())");
+        $stmt->bind_param("iss", $_SESSION['user_id'], $task, $status);
+
+        if ($stmt->execute()) {
+            header("Location: /view/pages/mytask.php");
+            exit;
+        } else {
+            echo "Gagal menambahkan tugas!";
+        }
+
+        $stmt->close();
+        $conn->close();
+    } else {
+        echo "Tugas dan status tidak boleh kosong!";
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,8 +43,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </head>
 <body>
-     <!-- Start Header -->
-     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <!-- Start Header -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container-fluid">
             <a href="/view/pages/mytask.php" class="navbar-brand">BPJS Productivity Hub</a>
         </div>
@@ -56,7 +89,7 @@
                                 </div>
                                 <div class="card-footer d-flex justify-content-end">
                                     <a href="mytask.php" class="btn btn-primary m-1">Cancel</a>
-                                    <a type="submit" name="addtransaksi" class="btn btn-success m-1">Submit</a>
+                                    <button type="submit" class="btn btn-success btn-sm w-auto m-1">Create</button>
                                 </div>
                             </form>
                     </div>
